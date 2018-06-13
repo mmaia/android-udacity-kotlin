@@ -16,113 +16,128 @@
 
 package com.codespair.androidudacitykotlin
 
-import android.os.AsyncTask
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.widget.EditText
-import android.widget.ProgressBar
-import android.widget.TextView
-import com.codespair.androidudacitykotlin.utilities.NetworkUtils
-import com.example.android.datafrominternet.R
-import java.net.URL
+import android.widget.Toast
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity, GreenAdapter.ListItemClickListener {
+  private val NUM_LIST_ITEMS = 100
 
-  var mSearchBoxEditText: EditText? = null
-  var mUrlDisplayTextView: TextView? = null
-  var mSearchResultsTextView: TextView? = null
-  var mErrorMessageDisplay: TextView? = null
-  var mLoadingIndicator: ProgressBar? = null
+  /*
+     * References to RecyclerView and Adapter to reset the list to its
+     * "pretty" state when the reset menu item is clicked.
+     */
+  private var mAdapter: GreenAdapter? = null
+  private var mNumbersList: RecyclerView? = null
 
-  override fun onCreate(savedInstanceState: Bundle?) {
+  // COMPLETED (9) Create a Toast variable called mToast to store the current Toast
+  /*
+     * If we hold a reference to our Toast, we can cancel it (if it's showing)
+     * to display a new Toast. If we didn't do this, Toasts would be delayed
+     * in showing up if you clicked many list items in quick succession.
+     */
+  private var mToast: Toast? = null
+
+  protected fun onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
 
-    mSearchBoxEditText = findViewById(R.id.et_search_box)
-    mUrlDisplayTextView = findViewById(R.id.tv_url_display)
-    mSearchResultsTextView = findViewById(R.id.tv_github_search_results_json)
-    mErrorMessageDisplay = findViewById(R.id.tv_error_message_display)
-    mLoadingIndicator = findViewById(R.id.pb_loading_indicator)
+    /*
+         * Using findViewById, we get a reference to our RecyclerView from xml. This allows us to
+         * do things like set the adapter of the RecyclerView and toggle the visibility.
+         */
+    mNumbersList = findViewById(R.id.rv_numbers) as RecyclerView
+
+    /*
+         * A LinearLayoutManager is responsible for measuring and positioning item views within a
+         * RecyclerView into a linear list. This means that it can produce either a horizontal or
+         * vertical list depending on which parameter you pass in to the LinearLayoutManager
+         * constructor. By default, if you don't specify an orientation, you get a vertical list.
+         * In our case, we want a vertical list, so we don't need to pass in an orientation flag to
+         * the LinearLayoutManager constructor.
+         *
+         * There are other LayoutManagers available to display your data in uniform grids,
+         * staggered grids, and more! See the developer documentation for more details.
+         */
+    val layoutManager = LinearLayoutManager(this)
+    mNumbersList!!.setLayoutManager(layoutManager)
+
+    /*
+         * Use this setting to improve performance if you know that changes in content do not
+         * change the child layout size in the RecyclerView
+         */
+    mNumbersList!!.setHasFixedSize(true)
+
+    // COMPLETED (13) Pass in this as the ListItemClickListener to the GreenAdapter constructor
+    /*
+         * The GreenAdapter is responsible for displaying each item in the list.
+         */
+    mAdapter = GreenAdapter(NUM_LIST_ITEMS, this)
+    mNumbersList!!.setAdapter(mAdapter)
   }
 
-  /**
-   * This method retrieves the search text from the EditText, constructs
-   * the URL (using {@link NetworkUtils}) for the github repository you'd like to find, displays
-   * that URL in a TextView, and finally fires off an AsyncTask to perform the GET request using
-   * our (not yet created) {@link GithubQueryTask}
-   */
-  private fun makeGithubSearchQuery() {
-    val githubQuery = mSearchBoxEditText!!.text.toString()
-    val githubSearchUrl = NetworkUtils.buildUrl(githubQuery)
-    mUrlDisplayTextView!!.text = githubSearchUrl.toString()
-    GithubQueryTask().execute(githubSearchUrl)
-  }
-
-  /**
-   * This method will make the View for the JSON data visible and
-   * hide the error message.
-   * <p>
-   * Since it is okay to redundantly set the visibility of a View, we don't
-   * need to check whether each view is currently visible or invisible.
-   */
-  private fun showJsonDataView() {
-    // First, make sure the error is invisible
-    mErrorMessageDisplay!!.visibility = View.INVISIBLE
-    // Then, make sure the JSON data is visible
-    mSearchResultsTextView!!.visibility = View.VISIBLE
-  }
-
-  /**
-   * This method will make the error message visible and hide the JSON
-   * View.
-   * <p>
-   * Since it is okay to redundantly set the visibility of a View, we don't
-   * need to check whether each view is currently visible or invisible.
-   */
-  private fun showErrorMessage() {
-    // First, hide the currently visible data
-    mSearchResultsTextView!!.visibility = View.INVISIBLE
-    // Then, show the error
-    mErrorMessageDisplay!!.visibility = View.VISIBLE
-  }
-
-  inner class GithubQueryTask : AsyncTask<URL, Void, String>() {
-    override fun onPreExecute() {
-      super.onPreExecute()
-      mLoadingIndicator!!.visibility = View.VISIBLE
-    }
-
-    override fun doInBackground(vararg params: URL): String? {
-      val searchUrl = params[0]
-      return NetworkUtils.getResponseFromHttpUrl(searchUrl)
-    }
-
-    override fun onPostExecute(githubSearchResults: String?) {
-      mLoadingIndicator!!.visibility = View.INVISIBLE
-      if (githubSearchResults != null && githubSearchResults != "") {
-        showJsonDataView()
-        mSearchResultsTextView!!.setText(githubSearchResults)
-      } else {
-        showErrorMessage()
-      }
-    }
-  }
-
-  override fun onCreateOptionsMenu(menu: Menu): Boolean {
-    menuInflater.inflate(R.menu.main, menu)
+  fun onCreateOptionsMenu(menu: Menu): Boolean {
+    getMenuInflater().inflate(R.menu.main, menu)
     return true
   }
 
-  override fun onOptionsItemSelected(item: MenuItem): Boolean {
-    val itemThatWasClickedId = item.itemId
-    if (itemThatWasClickedId == R.id.action_search) {
-      makeGithubSearchQuery()
-      return true
+  fun onOptionsItemSelected(item: MenuItem): Boolean {
+
+    val itemId = item.itemId
+
+    when (itemId) {
+    /*
+             * When you click the reset menu item, we want to start all over
+             * and display the pretty gradient again. There are a few similar
+             * ways of doing this, with this one being the simplest of those
+             * ways. (in our humble opinion)
+             */
+      R.id.action_refresh -> {
+        // COMPLETED (14) Pass in this as the ListItemClickListener to the GreenAdapter constructor
+        mAdapter = GreenAdapter(NUM_LIST_ITEMS, this)
+        mNumbersList!!.setAdapter(mAdapter)
+        return true
+      }
     }
+
     return super.onOptionsItemSelected(item)
+  }
+
+  // COMPLETED (10) Override ListItemClickListener's onListItemClick method
+  /**
+   * This is where we receive our callback from
+   * [com.example.android.recyclerview.GreenAdapter.ListItemClickListener]
+   *
+   * This callback is invoked when you click on an item in the list.
+   *
+   * @param clickedItemIndex Index in the list of the item that was clicked.
+   */
+  fun onListItemClick(clickedItemIndex: Int) {
+    // COMPLETED (11) In the beginning of the method, cancel the Toast if it isn't null
+    /*
+         * Even if a Toast isn't showing, it's okay to cancel it. Doing so
+         * ensures that our new Toast will show immediately, rather than
+         * being delayed while other pending Toasts are shown.
+         *
+         * Comment out these three lines, run the app, and click on a bunch of
+         * different items if you're not sure what I'm talking about.
+         */
+    if (mToast != null) {
+      mToast!!.cancel()
+    }
+
+    // COMPLETED (12) Show a Toast when an item is clicked, displaying that item number that was clicked
+    /*
+         * Create a Toast and store it in our Toast field.
+         * The Toast that shows up will have a message similar to the following:
+         *
+         *                     Item #42 clicked.
+         */
+    val toastMessage = "Item #$clickedItemIndex clicked."
+    mToast = Toast.makeText(this, toastMessage, Toast.LENGTH_LONG)
+
+    mToast!!.show()
   }
 }
