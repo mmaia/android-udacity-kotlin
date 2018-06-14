@@ -1,12 +1,13 @@
 package com.codespair.androidudacitykotlin
 
+import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 
-class GreenAdapter(numberOfItems: Int, listener: ListItemClickListener) : RecyclerView.Adapter<GreenAdapter.NumberViewHolder> {
+class GreenAdapter(numberOfItems: Int, listener: ListItemClickListener) : RecyclerView.Adapter<GreenAdapter.NumberViewHolder>() {
 
   private val TAG = GreenAdapter::class.java.simpleName
 
@@ -15,7 +16,7 @@ class GreenAdapter(numberOfItems: Int, listener: ListItemClickListener) : Recycl
      * An on-click handler that we've defined to make it easy for an Activity to interface with
      * our RecyclerView
      */
-  private val mOnClickListener: ListItemClickListener
+  val mOnClickListener: ListItemClickListener = listener
 
   /*
      * The number of ViewHolders that have been created. Typically, you can figure out how many
@@ -61,7 +62,7 @@ class GreenAdapter(numberOfItems: Int, listener: ListItemClickListener) : Recycl
      */
   private var viewHolderCount: Int = 0
 
-  private val mNumberItems: Int
+  private val mNumberItems: Int = 0
 
 
   /**
@@ -83,7 +84,7 @@ class GreenAdapter(numberOfItems: Int, listener: ListItemClickListener) : Recycl
    * for more details.
    * @return A new NumberViewHolder that holds the View for each list item
    */
-  fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): NumberViewHolder {
+  override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): NumberViewHolder {
     val context = viewGroup.context
     val layoutIdForListItem = R.layout.number_list_item
     val inflater = LayoutInflater.from(context)
@@ -113,7 +114,7 @@ class GreenAdapter(numberOfItems: Int, listener: ListItemClickListener) : Recycl
    * item at the given position in the data set.
    * @param position The position of the item within the adapter's data set.
    */
-  fun onBindViewHolder(holder: NumberViewHolder, position: Int) {
+  override fun onBindViewHolder(holder: NumberViewHolder, position: Int) {
     Log.d(TAG, "#$position")
     holder.bind(position)
   }
@@ -124,7 +125,7 @@ class GreenAdapter(numberOfItems: Int, listener: ListItemClickListener) : Recycl
    *
    * @return The number of items available
    */
-  fun getItemCount(): Int {
+  override fun getItemCount(): Int {
     return mNumberItems
   }
 
@@ -132,7 +133,7 @@ class GreenAdapter(numberOfItems: Int, listener: ListItemClickListener) : Recycl
   /**
    * Cache of the children views for a list item.
    */
-  internal inner class NumberViewHolder
+  inner class NumberViewHolder
   /**
    * Constructor for our ViewHolder. Within this constructor, we get a reference to our
    * TextViews and set an onClickListener to listen for clicks. Those will be handled in the

@@ -17,12 +17,15 @@
 package com.codespair.androidudacitykotlin
 
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 
 
-class MainActivity : AppCompatActivity, GreenAdapter.ListItemClickListener {
+class MainActivity : AppCompatActivity(), GreenAdapter.ListItemClickListener {
   private val NUM_LIST_ITEMS = 100
 
   /*
@@ -40,7 +43,7 @@ class MainActivity : AppCompatActivity, GreenAdapter.ListItemClickListener {
      */
   private var mToast: Toast? = null
 
-  protected fun onCreate(savedInstanceState: Bundle) {
+  override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
 
@@ -78,12 +81,12 @@ class MainActivity : AppCompatActivity, GreenAdapter.ListItemClickListener {
     mNumbersList!!.setAdapter(mAdapter)
   }
 
-  fun onCreateOptionsMenu(menu: Menu): Boolean {
+  override fun onCreateOptionsMenu(menu: Menu): Boolean {
     getMenuInflater().inflate(R.menu.main, menu)
     return true
   }
 
-  fun onOptionsItemSelected(item: MenuItem): Boolean {
+  override fun onOptionsItemSelected(item: MenuItem): Boolean {
 
     val itemId = item.itemId
 
@@ -114,7 +117,7 @@ class MainActivity : AppCompatActivity, GreenAdapter.ListItemClickListener {
    *
    * @param clickedItemIndex Index in the list of the item that was clicked.
    */
-  fun onListItemClick(clickedItemIndex: Int) {
+  override fun onListItemClick(clickedItemIndex: Int) {
     // COMPLETED (11) In the beginning of the method, cancel the Toast if it isn't null
     /*
          * Even if a Toast isn't showing, it's okay to cancel it. Doing so
